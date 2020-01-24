@@ -98,13 +98,20 @@ def make_children(data, num_parents, elite_preservation_rate):
 '''
     Main
 '''
+# エリート保存率
 elite_preservation_rate = 0.05
+# 一度の交叉で使う親の数
 num_parents = 2
+# 読み込むファイル
 read_filename = 'mock_random_matrix'
+# 書き込むファイル
 write_filename = 'children'
 
+# 対象のデータの読み込み
 data = read_csv(read_filename)
+# 次の世代の作成
 children = []
 children = make_children(data, num_parents, elite_preservation_rate)
 
+# 新しい世代をcsvに書き込む
 write_csv(write_filename, children)
