@@ -45,11 +45,17 @@ def add_ranking(random_matrix):
 '''
     Main
 '''
+# 個体数
 num_elements = 20
+# 次元数
 num_dimensions = 10
+# 書き込むファイル
 filename = 'mock_random_matrix'
 
+# [-1, 1]の範囲でランダム行列を作成
 random_matrix = make_random_matrix(num_elements, num_dimensions)
+# それぞれの個体にランダムでランキングを割り振る
 add_ranking(random_matrix)
 
+# 結果をcsvに書き込む
 write_csv(random_matrix, filename)
