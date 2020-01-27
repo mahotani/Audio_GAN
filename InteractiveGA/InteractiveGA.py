@@ -26,6 +26,7 @@ def write_csv(filename, data):
 '''
 def choose_parent(data, num_parents):
     weight_list = []
+    parents_index = []
     parents = []
     for elements in range(len(data)):
         weight = len(data) - int(data[elements][len(data[elements]) - 1]) + 1
@@ -34,6 +35,10 @@ def choose_parent(data, num_parents):
 
     for parent in range(num_parents):
         parent_index = random.choice(weight_list)
+        while parent_index in parents_index:
+            parent_index = random.choice(weight_list)
+        parents_index.append(parent_index)
+        
         parent_vector = []
         for element in range(len(data[parent_index]) - 1):
             parent_vector.append(float(data[parent_index][element]))
