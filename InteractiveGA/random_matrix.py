@@ -7,8 +7,15 @@ import statistics
     csvファイルへの書き込み
 '''
 def write_csv(data, filename):
+    header = []
+    '''
+    for dimention in range(1, len(data)):
+        header.append('次元%i' % (dimention))
+    header.append('重み')
+    '''
     with open(filename + '.csv', 'w') as csv_file:
         writer = csv.writer(csv_file)
+        writer.writerow(header)
         for row in data:
             writer.writerow(row)
 
@@ -22,9 +29,9 @@ def noise():
     ランダムベクトルの生成
     要素は全て[-1, 1]の範囲
 '''
-def make_random_vector(num_dimensions):
+def make_random_vector(num_dimentions):
     random_vector = []
-    for dimension in range(num_dimensions):
+    for dimention in range(num_dimentions):
         random_vector.append(np.random.rand() * noise())
 
     return random_vector
@@ -37,7 +44,7 @@ def make_random_matrix(num_elements, num_dimensions):
     random_matrix = []
     for element in range(num_elements):
         random_matrix.append(make_random_vector(num_dimensions))
-    
+
     return random_matrix
 
 '''
@@ -51,28 +58,38 @@ def euclid_distance(vector1, vector2):
     return math.sqrt(distance)
 
 '''
+    各要素と他の要素との距離の行列を返す
+'''
+def get_distance_matrix(data):
+    distance_matrix = []
+
+    for vector1 in data:
+        distance_vector = []
+        for vector2 in data:
+            distance_vector.append(euclid_distance(vector1, vector2))
+        distance_matrix.append(distance_vector)
+
+    return distance_matrix
+
+'''
     各ベクトルのユークリッド距離を取って各ベクトルと他のベクトルとの距離の平均を出し
     最小のもののインデックスを返す。
     各ベクトルの平均と全体の平均と分散も出す。
 '''
-def each_distance(matrix):
+def each_distance(distance_matrix):
     all_vecotors_mean = []
-    for vector in matrix:
-        distance_mean = 0
-        for index in range(len(matrix)):
-            distance_mean += euclid_distance(vector, matrix[index])
-        distance_mean /= len(matrix)
-        all_vecotors_mean.append(distance_mean)
+    for vector in distance_matrix:
+        all_vecotors_mean.append(sum(vector) / len(vector))
     
-    min = all_vecotors_mean[0]
+    minimum = all_vecotors_mean[0]
     index = 0
-    for current_index in range(1, len(matrix)):
-        if min > all_vecotors_mean[current_index]:
-            min = all_vecotors_mean[current_index]
+    for current_index in range(1, len(distance_matrix)):
+        if minimum > all_vecotors_mean[current_index]:
+            minimum = all_vecotors_mean[current_index]
             index = current_index
 
     all_means = statistics.mean(all_vecotors_mean)
-    all_variance = statistics.mean(all_vecotors_mean)
+    all_variance = statistics.variance(all_vecotors_mean)
     all_vecotors_mean.append(all_means)
     all_vecotors_mean.append(all_variance)
 
@@ -84,6 +101,21 @@ def each_distance(matrix):
 def replace_element(matrix, index):
     matrix[index] = make_random_vector(len(matrix[index]))
     return matrix
+
+'''
+    指定したindexの要素と他の要素とのユークリッド距離を更新する
+'''
+def update_distance(data, distance_matrix, index):
+    # 横成分の更新
+    for vector in range(len(data)):
+        distance = euclid_distance(data[index], data[vector])
+        distance_matrix[index][vector] = distance
+
+    # 縦成分の更新
+    for vector in range(len(data)):
+        distance_matrix[vector][index] = euclid_distance(data[vector], data[index])
+    
+    return distance_matrix
 
 '''
     ユークリッド距離の履歴のcsvファイル用のヘッダーを返す
@@ -120,14 +152,14 @@ def add_ranking(random_matrix):
     Main
 '''
 # 個体数
-num_elements = 20
+num_elements = 200
 # 次元数
-num_dimensions = 10
+num_dimensions = 100
 # ユークリッド距離の小さい要素を入れ替える回数
 num_replace = 10000
 
 # 書き込むファイル
-filename = 'mock_random_matrix'
+filename = 'mock_random_matrix_100'
 
 # ユークリッド距離の履歴
 euclid_history = []
@@ -135,14 +167,19 @@ euclid_history.append(header(num_elements))
 
 # [-1, 1]の範囲でランダム行列を作成
 random_matrix = make_random_matrix(num_elements, num_dimensions)
+
+# ユークリッド距離の行列
+euclid_matrix = get_distance_matrix(random_matrix)
+
 for count in range(1, num_replace + 1):
-    index, distances = each_distance(random_matrix)
-    distances.insert(0, count)
+    print(count)
+    index, distances = each_distance(euclid_matrix)
     euclid_history.append(distances)
     replace_element(random_matrix, index)
+    euclid_matrix = update_distance(random_matrix, euclid_matrix, index)
 
 # それぞれの個体にランダムでランキングを割り振る
-add_ranking(random_matrix)
+# add_ranking(random_matrix)
 
 # 結果をcsvに書き込む
 write_csv(random_matrix, filename)
