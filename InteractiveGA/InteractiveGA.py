@@ -1,102 +1,39 @@
 import csv
 import random
 import numpy as np 
+import functions
 
-'''
-    csvファイルの読み込み
-'''
-def read_csv(filename):
-    with open(filename + '.csv', 'r') as csv_file:
-        data = list(csv.reader(csv_file))
-    
-    return data
-
-'''
-    csvファイルへの書き込み
-'''
-def write_csv(filename, data):
-    with open(filename + '.csv', 'w') as csv_file:
-        writer = csv.writer(csv_file)
-        for row in data:
-            writer.writerow(row)
-
-
-'''
-    親の要素の取得
-'''
-def choose_parent(data, num_parents):
-    weight_list = []
-    parents_index = []
-    parents = []
-    for elements in range(len(data)):
-        weight = len(data) - int(data[elements][len(data[elements]) - 1]) + 1
-        for w in range(weight):
-            weight_list.append(elements)
-
-    for parent in range(num_parents):
-        parent_index = random.choice(weight_list)
-        while parent_index in parents_index:
-            parent_index = random.choice(weight_list)
-        parents_index.append(parent_index)
-        
-        parent_vector = []
-        for element in range(len(data[parent_index]) - 1):
-            parent_vector.append(float(data[parent_index][element]))
-        parents.append(parent_vector)
-
-    return parents
-
-'''
-    エリート保存分をリストに追加
-'''
-def elite_preservation(data, elite_preservation_rate, children):
-    for row in data:
-        if float(row[len(row) - 1]) <= len(data) * elite_preservation_rate:
-            vector = []
-            for element in range(len(row) - 1):
-                vector.append(float(row[element]))
-            children.append(vector)
-
-    return children
-
-'''
-    REX
-    乱数には正規分布を使用
-'''
-def REX(parent_vector):
-    weight = sum(parent_vector) / len(parent_vector)
-    child = weight
-    for element in parent_vector:
-        child += (element - weight) * np.random.normal(0, 1/len(parent_vector))
-
-    return child
 
 '''
     交叉
 '''
-def crossover(data, num_parents):
-    parents = choose_parent(data, num_parents)
+def crossover(data, num_parents, solutions, bias):
+    parents = functions.choose_roulette(data, num_parents, solutions, bias)
     child = []
     for child_index in range(len(parents[0])):
         parent_vector = []
         for parents_index in range(len(parents)):
             parent_vector.append(parents[parents_index][child_index])
-        child.append(REX(parent_vector))
+        child.append(functions.XLM(parent_vector))
 
     return child
 
 '''
     新しい世代の作成
 '''
-def make_children(data, num_parents, elite_preservation_rate):
+def make_children(data, num_parents, elite_preservation_rate, solutions, bias):
     children = []
+    evaluations = functions.get_evaluations_list(data, solutions, bias)
+    rank_list = functions.get_ranking_list(evaluations)
     # エリート保存分
-    children = elite_preservation(data, elite_preservation_rate, children)
-
-    # 交叉
-    for num_crossover in range(int(len(data) * (1 - elite_preservation_rate))):
-        child_vector = crossover(data, num_parents)
-        children.append(child_vector)
+    for order in range(1, int(elite_preservation_rate * len(data) + 1)):
+        for index in range(len(rank_list)):
+            if rank_list[index] == order:
+                children.append(data[index])
+                break
+    
+    for element in range(len(data) - int(len(data) * elite_preservation_rate)):
+        children.append(crossover(data, num_parents, solutions, bias))
 
     return children
 
@@ -108,15 +45,46 @@ elite_preservation_rate = 0.05
 # 一度の交叉で使う親の数
 num_parents = 2
 # 読み込むファイル
-read_filename = 'mock_random_matrix'
+read_filename = 'pre_experiment/mock_random_matrix_10'
 # 書き込むファイル
-write_filename = 'children'
+write_filename = 'dressing/children'
+# 実行回数
+num_execute = 250
 
-# 対象のデータの読み込み
-data = read_csv(read_filename)
-# 次の世代の作成
-children = []
-children = make_children(data, num_parents, elite_preservation_rate)
+# 局所解ファイル
+solutions_file = 'pre_experiment/mock_solutions_100'
+# 評価結果のファイル
+result_file = 'dressing/evaluation_result'
 
-# 新しい世代をcsvに書き込む
-write_csv(write_filename, children)
+# 局所解ファイルの読み込み
+solutions_data = functions.read_csv(solutions_file)
+del solutions_data[0]
+solutions_data = functions.transform_to_float(solutions_data)
+
+# 局所解とバイアスに分ける
+solutions, bias = functions.divide_solutions_bias(solutions_data)
+
+# 評価値の結果のリスト
+evaluations_result = []
+
+for num_experiment in range(1 , 3501):
+    print(num_experiment)
+    # 対象のデータの読み込み
+    data = functions.read_csv(read_filename)
+    del data[0]
+    data = functions.transform_to_float(data)
+    # 次の世代の作成
+    for num in range(num_execute):
+        print(num)
+        data = make_children(data, num_parents, elite_preservation_rate, solutions, bias)
+        
+
+    # 新しい世代をcsvに書き込む
+    functions.write_csv(write_filename + '_%i' % num_experiment, data)
+
+    evaluations = functions.get_evaluations_list(data, solutions, bias)
+    evaluation_vector = functions.get_result(data, evaluations, num_experiment, functions.get_best_solution_index(bias), solutions)
+    evaluations_result.append(evaluation_vector)
+final_result = functions.get_final_result(evaluations_result)
+
+functions.write_result(result_file, evaluations_result, final_result)
