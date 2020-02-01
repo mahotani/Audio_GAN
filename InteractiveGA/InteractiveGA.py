@@ -32,7 +32,7 @@ def make_children(data, num_parents, elite_preservation_rate, solutions, bias):
                 children.append(data[index])
                 break
     
-    for element in range(int(len(data) - len(data) * elite_preservation_rate)):
+    for element in range(len(data) - int(len(data) * elite_preservation_rate)):
         children.append(crossover(data, num_parents, solutions, bias))
 
     return children
@@ -45,14 +45,14 @@ elite_preservation_rate = 0.05
 # 一度の交叉で使う親の数
 num_parents = 2
 # 読み込むファイル
-read_filename = 'pre_experiment/mock_random_matrix_200'
+read_filename = 'pre_experiment/mock_random_matrix_10'
 # 書き込むファイル
 write_filename = 'dressing/children'
 # 実行回数
-num_execute = 4
+num_execute = 250
 
 # 局所解ファイル
-solutions_file = 'pre_experiment/mock_solutions_200'
+solutions_file = 'pre_experiment/mock_solutions_100'
 # 評価結果のファイル
 result_file = 'dressing/evaluation_result'
 
@@ -75,8 +75,10 @@ for num_experiment in range(1 , 3501):
     data = functions.transform_to_float(data)
     # 次の世代の作成
     for num in range(num_execute):
+        print(num)
         data = make_children(data, num_parents, elite_preservation_rate, solutions, bias)
-    
+        
+
     # 新しい世代をcsvに書き込む
     functions.write_csv(write_filename + '_%i' % num_experiment, data)
 

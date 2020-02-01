@@ -70,14 +70,14 @@ num_parents = 2
 # 一度の交叉で生まれる子の数
 num_children = 4
 # 読み込むファイル
-read_filename = 'pre_experiment/mock_random_matrix_200'
+read_filename = 'pre_experiment/mock_random_matrix_100'
 # 書き込むファイル
 write_filename = 'MGG/children'
 # 実行回数
 num_execute = 334
 
 # 局所解ファイル
-solutions_file = 'pre_experiment/mock_solutions_200'
+solutions_file = 'pre_experiment/mock_solutions_10'
 # 評価結果のファイル
 result_file = 'MGG/evaluation_result'
 
@@ -99,7 +99,7 @@ for num_experiment in range(1, 3501):
     data = functions.read_csv(read_filename)
     del data[0]
     data = functions.transform_to_float(data)
-    before_index = functions.get_result(data, functions.get_evaluations_list(data, solutions, bias), num_experiment, functions.get_best_solution_index(bias), solutions)[2]
+    # before_index = functions.get_result(data, functions.get_evaluations_list(data, solutions, bias), num_experiment, functions.get_best_solution_index(bias), solutions)[2]
     # 次の世代の作成
     for num in range(num_execute):
         print('-------')
@@ -110,7 +110,7 @@ for num_experiment in range(1, 3501):
         print(functions.get_result(data, functions.get_evaluations_list(data, solutions, bias), num_experiment, functions.get_best_solution_index(bias), solutions))
         # before_index = functions.get_result(data, functions.get_evaluations_list(data, solutions, bias), num_experiment, functions.get_best_solution_index(bias), solutions)[2]
     # 新しい世代をcsvに書き込む
-    # functions.write_csv(write_filename + '_%i' % num_experiment, data)
+    functions.write_csv(write_filename + '_%i' % num_experiment, data)
 
     evaluations = functions.get_evaluations_list(data, solutions, bias)
     evaluation_vector = functions.get_result(data, evaluations, num_experiment, functions.get_best_solution_index(bias), solutions)

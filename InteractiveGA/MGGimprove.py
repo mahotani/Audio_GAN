@@ -66,14 +66,14 @@ num_parents = 2
 # 一度の交叉で生まれる子の数
 num_children = 4
 # 読み込むファイル
-read_filename = 'pre_experiment/mock_random_matrix_200'
+read_filename = 'pre_experiment/mock_random_matrix_10'
 # 書き込むファイル
 write_filename = 'MGGimprove/children'
 # 実行回数
 num_execute = 7
 
 # 局所解ファイル
-solutions_file = 'pre_experiment/mock_solutions_200'
+solutions_file = 'pre_experiment/mock_solutions_10'
 # 評価結果のファイル
 result_file = 'MGGimprove/evaluation_result'
 

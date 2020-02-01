@@ -16,57 +16,60 @@ def crossover(parents):
     return child
 
 '''
-    JGGによる次世代の生成
+    JGG+による次世代の生成
 '''
 def next_generation_JGG(data, solutions, bias, num_parents, num_children):
-    parents, parents_index = functions.random_parent(data, num_parents)
-    for index in range(len(parents_index)):
-        count = 0
-        for index2 in range(index):
-            if parents_index[index2] < parents_index[index]:
-                count += 1
-        del data[parents_index[index] - count]
+    new_generation = []
+    while data != []:
+        parents, parents_index = functions.random_parent(data, num_parents)
+        for index in range(len(parents_index)):
+            count = 0
+            for index2 in range(index):
+                if parents_index[index2] < parents_index[index]:
+                    count += 1
+            del data[parents_index[index] - count]
 
-    children = []
+        children = []
 
-    for parent in parents:
-        children.append(parent)
+        for parent in parents:
+            children.append(parent)
 
-    for cross in range(num_children):
-        child_vector = crossover(parents)
-        children.append(child_vector)
-    
-    evaluations = functions.get_evaluations_list(children, solutions, bias)
-    rank_list = functions.get_ranking_list(evaluations)
+        for cross in range(num_children):
+            child_vector = crossover(parents)
+            children.append(child_vector)
+        
+        evaluations = functions.get_evaluations_list(children, solutions, bias)
+        rank_list = functions.get_ranking_list(evaluations)
 
-    # 上位のものを元のリストに戻す
-    for order in range(1, num_parents+1):
-        for index in range(len(rank_list)):
-            if rank_list[index] == order:
-                data.append(children[index])
-                del children[index]
-                del rank_list[index]
-                break
-    return data
+        # 上位のものを元のリストに戻す
+        for order in range(1, num_parents+1):
+            for index in range(len(rank_list)):
+                if rank_list[index] == order:
+                    new_generation.append(children[index])
+                    del children[index]
+                    del rank_list[index]
+                    break
+
+    return new_generation
 
 '''
     Main
 '''
 # 一度の交叉で使う親の数
-num_parents = 3
+num_parents = 5
 # 一度の交叉で生まれる子の数
 num_children = 6
 # 読み込むファイル
 read_filename = 'pre_experiment/mock_random_matrix_10'
 # 書き込むファイル
-write_filename = 'JGG/children'
+write_filename = 'JGGimprove/children'
 # 実行回数
-num_execute = 334
+num_execute = 7
 
 # 局所解ファイル
 solutions_file = 'pre_experiment/mock_solutions_10'
 # 評価結果のファイル
-result_file = 'JGG/evaluation_result'
+result_file = 'JGGimprove/evaluation_result'
 
 # 局所解ファイルの読み込み
 solutions_data = functions.read_csv(solutions_file)
